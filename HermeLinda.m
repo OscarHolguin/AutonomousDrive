@@ -7,12 +7,12 @@ mapSizeX = 1000; % [km]
 mapSizeY = 1000; % [km]
 
 % Hermelinda initial coordinates
-startX = 10; % [km]
-startY = 10; % [km]
+xStart = 10; % [km]
+yStart = 10; % [km]
 
 % Goal coordinates
-endX = 950; % [km]
-endY = 950; % [km]
+xEnd = 950; % [km]
+yEnd = 950; % [km]
 
 % Speed
 minSpeed = 10; % [km/h]
@@ -51,6 +51,16 @@ while placedObstacles < numOfObstacles
     newObstacleY_0 = (mapSizeY - obstacleSizeY) * rand;
     newObstacleY_f = newObstacleY_0 + obstacleSizeY;
     
+    % Evaluate candidate against key coordinates
+    xStartOverlap = newObstacleX_0 < xStart && xStart < newObstacleX_f;
+    yStartOverlap = newObstacleY_0 < yStart && yStart < newObstacleY_f;
+    xEndOverlap = newObstacleX_0 < xEnd && xEnd < newObstacleX_f;
+    yEndOverlap = newObstacleY_0 < yEnd && yEnd < newObstacleY_f;
+    
+    if (xStartOverlap && yStartOverlap) || (xEndOverlap && yEndOverlap)
+        continue
+    end
+    
     % Evaluate cantidate on map
     validObstacle = true;
     for o = 1:placedObstacles
@@ -73,7 +83,18 @@ while placedObstacles < numOfObstacles
 end
 
 %% Initial population
-% TODO: Create randomized population
+% Allocate memory
+theLiving = cell(populationSize,1);
+specimenFitness = zeros(populationSize,1);
+
+% Randomize population
+for specimen = 1:populationSize
+    % Speed
+    theLiving{specimen}(:,2) = minSpeed + (maxSpeed - minSpeed) * rand(numOfChanges + 1, 1);
+    
+    % Direction
+    theLiving{specimen}(:,1) = 2 * pi * rand(numOfChanges + 1, 1);
+end
 
 %% Evolution
 % TODO:
