@@ -45,7 +45,7 @@ function isCrash = detectCrash(obstacles,origin,goal)
     end
     
     % Get linear equation of the trayectory
-    m = (xf - x0) / (yf - y0);
+    m = (yf - y0) / (xf - x0);
     b = y0 - m * x0;
     
     % Test the left side of the obstacle
