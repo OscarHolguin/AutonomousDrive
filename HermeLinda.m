@@ -41,7 +41,36 @@ enableTimeout = 0;
 timeoutMinutes = 10;
 
 %% Map
-% TODO: Create map with non-overlapping obstacles
+% Create map with non-overlapping obstacles
+obstacles = zeros(numOfObstacles,2);
+placedObstacles = 0;
+while placedObstacles < numOfObstacles
+    % Create new obstacle candidate
+    newObstacleX_0 = (mapSizeX - obstacleSizeX) * rand;
+    newObstacleX_f = newObstacleX_0 + obstacleSizeX;
+    newObstacleY_0 = (mapSizeY - obstacleSizeY) * rand;
+    newObstacleY_f = newObstacleY_0 + obstacleSizeY;
+    
+    % Evaluate cantidate on map
+    validObstacle = true;
+    for o = 1:placedObstacles
+        xOverlap_0 = obstacles(o,1) < newObstacleX_0 && newObstacleX_0 < obstacles(o,1) + obstacleSizeX;
+        xOverlap_f = obstacles(o,1) < newObstacleX_f && newObstacleX_f < obstacles(o,1) + obstacleSizeX;
+        yOverlap_0 = obstacles(o,2) < newObstacleY_0 && newObstacleY_0 < obstacles(o,2) + obstacleSizeY;
+        yOverlap_f = obstacles(o,2) < newObstacleY_f && newObstacleY_f < obstacles(o,2) + obstacleSizeY;
+        
+        if (xOverlap_0 || xOverlap_f) && (yOverlap_0 || yOverlap_f)
+            validObstacle = false;
+            break
+        end
+    end
+    
+    % Add valid candidate
+    if validObstacle
+        placedObstacles = placedObstacles + 1;
+        obstacles(placedObstacles,:) = [newObstacleX_0, newObstacleY_0];
+    end
+end
 
 %% Initial population
 % TODO: Create randomized population
