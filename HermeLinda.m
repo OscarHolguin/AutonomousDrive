@@ -13,7 +13,7 @@ yStart = 10; % [km]
 % Goal coordinates
 xEnd = 950; % [km]
 yEnd = 950; % [km]
-
+goal=[xEnd yEnd];
 % Speed
 minSpeed = 10; % [km/h]
 maxSpeed = 140; % [km/h]
@@ -103,6 +103,8 @@ end
 route = zeros(numOfChanges + 2, 2);
 route(1,:) = [xStart, yStart];
 
+initializeMap
+
 while true
     % % % Evaluation % % %
     for specimen = 1:populationSize
@@ -116,24 +118,19 @@ while true
             outOfBounds = any(route(m + 1,:) < 0) || (route(m + 1,1) > mapSizeX) || (route(m + 1,2) > mapSizeY);
             
             if outOfBounds || detectCrash(obstacles,route(m,:),route(m + 1,:))
-                % fitness is closeness from route(movement) to goal
-                % TODO: Get fitness
+                % Get fitness, closest distance before out of bounds / crash
+                specimenFitness(specimen) = 1 / sqrt(sum( (goal - route(m,:)) .^ 2 ));
                 survived = false;
+                
+                % End route
                 break
             end
         end
         
+        % Get the fitness for those who survived
         if survived
-            % fitness
+           specimenFitness(specimen) = 1 / sqrt(sum( (goal - route(end,:)) .^ 2 ));
         end
-        
-        % Get fitness
-        
-%         if any(route(:) < 0) || any(route(:,1) > mapSizeX) || any(route(:,2) > mapSizeY)
-%             specimenFitness(specimen) = 0;
-%         else
-%             
-%         end
     end
     
     % Check and save (RAM) the all-time best
@@ -147,22 +144,3 @@ while true
     % % % Breaking mechanisms % % %
     break % TODO: Change this to breaking mechanisms
 end
-
-% %% initial movements 
-%  for i=1:M 
-%      for k=2:Change
-%          ptx=xp(i,k-1)+velocity(k-1).*cos(pi/180*rot(i,k-1)); %initial position+velocity*angle
-%           pty=yp(i,k-1)+velocity(k-1).*sin(pi/180*rot(i,k-1));
-%           while sign(ptx)==-1 ||sign(pty)==-1 %avoid negative path 
-%           rot=randi([-180 180],Change);
-%           ptx=xp(i,k-1)+velocity(k-1).*cos(pi/180*rot(i,k-1)); 
-%           pty=yp(i,k-1)+velocity(k-1).*sin(pi/180*rot(i,k-1));
-%           end
-%           xp(i,k)=ptx;
-%           yp(i,k)=pty;          
-%      end
-%      plot(xp(i,:),yp(i,:),'--'); 
-%      xlim([0 1000]);
-%      ylim([0,1000]); 
-%      hold on; 
-%  end
