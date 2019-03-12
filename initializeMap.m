@@ -16,7 +16,7 @@ plot(xStart,yStart,'d','color','b','LineWidth',2)
 plot(xEnd,yEnd,'x','color','r','LineWidth',2)
 
 % TODO: Fix title text
-title('Title goes here')
+title('Hermelinda Linda')
 set(gca,'FontSize',16);
 
 % Adjust axis size
