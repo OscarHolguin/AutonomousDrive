@@ -37,12 +37,13 @@ populationSize = 100;
 mutationProbability = 0.0001;
 
 % Timeout
+% TODO: IMPLEMENT
 enableTimeout = 0;
 timeoutMinutes = 10;
 
 %% Map
 % Create map with non-overlapping obstacles
-obstacles = zeros(numOfObstacles,2);
+obstacles = zeros(numOfObstacles,4);
 placedObstacles = 0;
 while placedObstacles < numOfObstacles
     % Create new obstacle candidate
@@ -78,7 +79,7 @@ while placedObstacles < numOfObstacles
     % Add valid candidate
     if validObstacle
         placedObstacles = placedObstacles + 1;
-        obstacles(placedObstacles,:) = [newObstacleX_0, newObstacleY_0];
+        obstacles(placedObstacles,:) = [newObstacleX_0, newObstacleY_0, newObstacleX_f, newObstacleY_f];
     end
 end
 
@@ -97,13 +98,44 @@ for specimen = 1:populationSize
 end
 
 %% Evolution
-% TODO:
-% - Loop until at least one specimen achieves the goal or timeout
+% TODO: Loop until at least one specimen achieves the goal or timeout
+
+route = zeros(numOfChanges + 2, 2);
+route(1,:) = [xStart, yStart];
 
 while true
     % % % Evaluation % % %
-    % Generate routes from current population
-    % Get fitness
+    for specimen = 1:populationSize
+        % Generate route
+        survived = true;
+        for m = 1:(numOfChanges + 1)
+            [deltaX, deltaY] = pol2cart(theLiving{specimen}(m,1),theLiving{specimen}(m,2));
+            route(m + 1,:) = route(m,:) + [deltaX, deltaY];
+            
+            % Check for out of bounds
+            outOfBounds = any(route(m + 1,:) < 0) || (route(m + 1,1) > mapSizeX) || (route(m + 1,2) > mapSizeY);
+            
+            if outOfBounds || detectCrash(obstacles,route(m,:),route(m + 1,:))
+                % fitness is closeness from route(movement) to goal
+                % TODO: Get fitness
+                survived = false;
+                break
+            end
+        end
+        
+        if survived
+            % fitness
+        end
+        
+        % Get fitness
+        
+%         if any(route(:) < 0) || any(route(:,1) > mapSizeX) || any(route(:,2) > mapSizeY)
+%             specimenFitness(specimen) = 0;
+%         else
+%             
+%         end
+    end
+    
     % Check and save (RAM) the all-time best
     
     % % % Survival of the fittest % % %
