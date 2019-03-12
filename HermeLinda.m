@@ -13,7 +13,7 @@ yStart = 10; % [km]
 % Goal coordinates
 xEnd = 950; % [km]
 yEnd = 950; % [km]
-
+goal=[xEnd yEnd];
 % Speed
 minSpeed = 10; % [km/h]
 maxSpeed = 140; % [km/h]
@@ -126,9 +126,11 @@ while true
         end
         
         if survived
-            % fitness
+            % fitnes
+           Fitness=1/(sqrt(sum((goal-route(m,:)).^2)));
+
         end
-        
+        Fitness=1/(sqrt(sum((goal-route(m,:)).^2)));
         % Get fitness
         
 %         if any(route(:) < 0) || any(route(:,1) > mapSizeX) || any(route(:,2) > mapSizeY)
