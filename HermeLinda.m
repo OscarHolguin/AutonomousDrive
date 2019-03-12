@@ -103,6 +103,8 @@ end
 route = zeros(numOfChanges + 2, 2);
 route(1,:) = [xStart, yStart];
 
+initializeMap
+
 while true
     % % % Evaluation % % %
     for specimen = 1:populationSize
