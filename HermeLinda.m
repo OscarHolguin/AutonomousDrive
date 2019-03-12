@@ -102,9 +102,13 @@ end
 
 route = zeros(numOfChanges + 2, 2);
 route(1,:) = [xStart, yStart];
+bestRoute = NaN(size(route));
+bestRoute(1,:) = route(1,:);
+bestFitness = 0;
 
 initializeMap
 
+generation = 1;
 while true
     % % % Evaluation % % %
     for specimen = 1:populationSize
@@ -133,7 +137,40 @@ while true
         end
     end
     
+    % Sort population
+    [~,bestIdx] = sort(specimenFitness,'descend');
+    
     % Check and save (RAM) the all-time best
+    if specimenFitness(bestIdx(1)) > bestFitness
+        % Save the data into memory
+        bestFitness = specimenFitness(bestIdx(1));
+        bestSpecimen = theLiving{bestIdx(1)};
+        bestGeneration = generation;
+        
+        % Get route
+        specimen = bestIdx(1);
+        bestRoute(2:end,:) = NaN;
+        for m = 1:(numOfChanges + 1)
+            [deltaX, deltaY] = pol2cart(theLiving{specimen}(m,1),theLiving{specimen}(m,2));
+            bestRoute(m + 1,:) = bestRoute(m,:) + [deltaX, deltaY];
+            
+            % Check for out of bounds
+            outOfBounds = any(bestRoute(m + 1,:) < 0) || (bestRoute(m + 1,1) > mapSizeX) || (bestRoute(m + 1,2) > mapSizeY);
+            
+            % End route calculation
+            if outOfBounds || detectCrash(obstacles,bestRoute(m,:),bestRoute(m + 1,:))
+                break
+            end
+        end
+        
+        % Update route data
+        routeHandler.XData = bestRoute(:,1);
+        routeHandler.YData = bestRoute(:,2);
+        
+        % Pause to update display
+        pause(0)
+    end
+    
     
     % % % Survival of the fittest % % %
     % Acquire targets
