@@ -159,6 +159,7 @@ while true
             
             % End route calculation
             if outOfBounds || detectCrash(obstacles,bestRoute(m,:),bestRoute(m + 1,:))
+                bestRoute(m + 1,:) = [NaN NaN];
                 break
             end
         end
