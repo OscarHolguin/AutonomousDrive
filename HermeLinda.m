@@ -2,6 +2,14 @@
 % Gentic algorithm that finds a route through a map with obstacles
 
 %% Settings
+% Generations
+enableMaxGenerations = 1;
+maxGenerations = 20000;
+
+% Timeout
+enableTimeout = 1;
+timeoutMinutes = 5;
+
 % Map size
 mapSizeX = 1000; % [km]
 mapSizeY = 1000; % [km]
@@ -10,10 +18,11 @@ mapSizeY = 1000; % [km]
 xStart = 10; % [km]
 yStart = 10; % [km]
 
-% Goal coordinates
+% Goal
 xEnd = 950; % [km]
 yEnd = 950; % [km]
-goal=[xEnd yEnd];
+acceptanceRadius = 10; % [km]
+
 % Speed
 minSpeed = 10; % [km/h]
 maxSpeed = 140; % [km/h]
@@ -27,19 +36,17 @@ obstacleSizeX = 50; % [km]
 obstacleSizeY = 50; % [km]
 
 % Elitism
-enableElitism = 1;
-elitismFraction = 0.1;
+enableElitism = 0;
+elitismFraction = 0.05;
 
 % Population
-populationSize = 100;
+populationSize = 200;
+
+paternalProbability = 0.6;
 
 % Mutation
-mutationProbability = 0.0001;
-
-% Timeout
-% TODO: IMPLEMENT
-enableTimeout = 0;
-timeoutMinutes = 10;
+mutationProbability = 0.0005;
+mutationRangeFraction = 0.3;
 
 %% Calculated settings
 % Elitism
@@ -48,6 +55,12 @@ if enableElitism == 0
 end
 eliteAmount = floor(populationSize * elitismFraction);
 nonEliteIdx = (eliteAmount + 1):populationSize;
+
+% Timeout
+timeout = timeoutMinutes * 60;
+
+% Goal
+goal = [xEnd yEnd];
 
 %% Map
 % Create map with non-overlapping obstacles
@@ -116,7 +129,11 @@ bestFitness = 0;
 
 initializeMap
 
+% TODO: Move tic
+tic
+
 generation = 1;
+goalAchieved = false;
 while true
     % % % Evaluation % % %
     for specimen = 1:populationSize
@@ -134,6 +151,12 @@ while true
                 specimenFitness(specimen) = 1 / sqrt(sum( (goal - route(m,:)) .^ 2 ));
                 survived = false;
                 
+                % Check if the goal was achieved
+                if sqrt(sum( (goal - route(m,:)) .^ 2 )) <= acceptanceRadius
+                    goalAchieved = true;
+                    changeIdx = m;
+                end
+                
                 % End route
                 break
             end
@@ -142,6 +165,15 @@ while true
         % Get the fitness for those who survived
         if survived
            specimenFitness(specimen) = 1 / sqrt(sum( (goal - route(end,:)) .^ 2 ));
+           
+           % Check if the goal was achieved
+           if sqrt(sum( (goal - route(end,:)) .^ 2 )) <= acceptanceRadius
+               goalAchieved = true;
+               changeIdx = numOfChanges + 1;
+               break
+           end
+        elseif goalAchieved
+            break
         end
     end
     
@@ -178,6 +210,11 @@ while true
         
         % Pause to update display
         pause(0)
+        
+        % Break if achieved goal
+        if goalAchieved
+            break
+        end
     end
     
     
@@ -251,7 +288,44 @@ while true
     end
     
     % % % Mutations % % %
+    for specimen = 1:populationSize
+        % Indices
+        mutate = rand(numOfChanges + 1, 1) < mutationProbability;
+        
+        % Speed mutations
+        speedMutation = mutationRangeFraction * (maxSpeed - minSpeed) * rand(numOfChanges + 1, 1);
+        % Direction mutations
+        directionMutation = mutationRangeFraction * 2 * pi * rand(numOfChanges + 1, 1);
+        % Mutation sign
+        mutationSign = randi([0, 1],[numOfChanges + 1, 2]);
+        mutationSign(mutationSign == 0) = -1;
+        
+        % Mutate
+        theLiving{specimen}(mutate,1) = theLiving{specimen}(mutate,1) + mutationSign(mutate,1) .* speedMutation(mutate);
+        theLiving{specimen}(mutate,2) = theLiving{specimen}(mutate,2) + mutationSign(mutate,2) .* directionMutation(mutate);
+        
+        % Limit speed
+        theLiving{specimen}(theLiving{specimen}(:,1) > maxSpeed, 1) = maxSpeed;
+        theLiving{specimen}(theLiving{specimen}(:,1) < minSpeed, 1) = minSpeed;
+    end
     
     % % % Breaking mechanisms % % %
-    break % TODO: Change this to breaking mechanisms
+    if (enableMaxGenerations == 1 && maxGenerations == generation)
+        break
+    end
+    
+    if (enableTimeout == 1 && toc >= timeout)
+        break
+    end
+    
+    generation = generation + 1;
+end
+
+if goalAchieved
+    fprintf('Goal achieved!\n')
+    fprintf('Achieved generation %i.\n',generation)
+    toc
+else
+    fprintf('Goal not achieved.\n')
+    fprintf('Achieved generation %i.\n',generation)
 end

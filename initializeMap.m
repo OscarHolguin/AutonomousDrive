@@ -12,7 +12,7 @@ for o = 1:length(obstacles)
 end
 
 % Draw start and end points
-plot(xStart,yStart,'d','color','b','LineWidth',2)
+plot(xStart,yStart,'o','color','k','LineWidth',2)
 plot(xEnd,yEnd,'x','color','r','LineWidth',2)
 
 % TODO: Fix title text
@@ -30,4 +30,7 @@ set(gca,'YTick',[])
 set(gcf,'Color','w');
 
 % Plot empty route and get handler
-routeHandler = plot(zeros(numOfChanges + 2,1),zeros(numOfChanges + 2,1),'LineWidth',2);
+routeHandler = plot(zeros(numOfChanges + 2,1),zeros(numOfChanges + 2,1),'--r','LineWidth',2);
+
+% Draw display
+pause(0)
