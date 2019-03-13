@@ -41,6 +41,14 @@ mutationProbability = 0.0001;
 enableTimeout = 0;
 timeoutMinutes = 10;
 
+%% Calculated settings
+% Elitism
+if enableElitism == 0
+    elitismFraction = 0;
+end
+eliteAmount = floor(populationSize * elitismFraction);
+nonEliteIdx = (eliteAmount + 1):populationSize;
+
 %% Map
 % Create map with non-overlapping obstacles
 obstacles = zeros(numOfObstacles,4);
@@ -175,7 +183,72 @@ while true
     
     % % % Survival of the fittest % % %
     % Acquire targets
+    killed = 0;
+    killIdx = false(1,populationSize);
+    while killed < populationSize / 2
+        % Go from unfittest to fittest
+        unfitToFit = flip(bestIdx(nonEliteIdx)); % Only the non elite
+        
+        for s = 1:(populationSize - eliteAmount)
+            specimen = unfitToFit(s);
+            % Always include probability of survival (also for unfittest, elitism exception)
+            if (killIdx(specimen) == false) && (exp(find(specimen == bestIdx,1)/populationSize - 1.1) >= rand)
+                % Acquire target
+                killIdx(specimen) = true;
+                
+                % Increase counter and check
+                killed = killed + 1;
+                if killed >= populationSize / 2
+                    break
+                end
+            end
+        end
+    end
+    
     % Kill and substitute via reproduction
+    replaceWithBaby = find(killIdx);
+    for newBaby = 1:length(replaceWithBaby)
+        % Only search in the ones not to be killed
+        allowedIdx = ~killIdx;
+        
+        % Get first parent
+        firstParentIdx = 0;
+        lookingForFirstParent = true;
+        while lookingForFirstParent
+            % The most fit are the firsts in line
+            orderedCandidatesIdx = bestIdx(allowedIdx);
+            
+            for candidate = 1:length(orderedCandidatesIdx)                
+                if rand < paternalProbability
+                    lookingForFirstParent = false;
+                    firstParentIdx = orderedCandidatesIdx(candidate);
+                    allowedIdx(firstParentIdx) = false;
+                    break
+                end
+            end
+        end
+        
+        % Get second parent
+        secondParentIdx = 0;
+        lookingForSecondParent = true;
+        while lookingForSecondParent
+            % The most fit are the firsts in line
+            orderedCandidatesIdx = bestIdx(allowedIdx);
+            
+            for candidate = 1:length(orderedCandidatesIdx)
+                if rand < paternalProbability
+                    lookingForSecondParent = false;
+                    secondParentIdx = orderedCandidatesIdx(candidate);
+                    break
+                end
+            end
+        end
+        
+        % Make baby
+        firstParent = randi([0, 1], [numOfChanges + 1, 1]);
+        secondParent = ~firstParent;
+        theLiving{replaceWithBaby(newBaby)} = firstParent .* theLiving{firstParentIdx} + secondParent .* theLiving{secondParentIdx};
+    end
     
     % % % Mutations % % %
     
